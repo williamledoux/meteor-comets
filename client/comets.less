@@ -1,0 +1,63 @@
+
+.filter(@filters){
+  -webkit-filter: @filters;
+  -moz-filter: @filters;
+  -o-filter: @filters;
+  -ms-filter: @filters;
+  filter: @filters;
+}
+
+/* CSS declarations go here */
+body{
+	margin:0;
+	padding:0;
+	background-color:#231F20;
+}
+
+/*
+div#background{
+	margin:0;
+	padding:0;
+	position:absolute;
+	margin-top:-1000px;
+	margin-left:-1000px;
+	width:2000px;
+	height:2000px;
+	background: url('intro-bg.jpg');
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position:center;
+	top:50%;
+	left:50%;
+	opacity:0.95;
+	.filter(saturate(0) brightness(0.8) blur(2px));
+}
+*/
+
+svg#comets{
+	position:absolute;
+	margin-top:-400px;
+	margin-left:-400px;
+	width:800px;
+	height:800px;
+	top:50%;
+	left:50%;
+	//background:yellow;
+	//border:1px solid white;
+}
+
+div#logo{
+	background: url('meteor_cover.jpg');
+	background-size: cover;
+	margin-top:-150px;
+	margin-left:-125px;
+	width:250px;
+	height:300px;
+	top:50%;
+	left:50%;
+	position:absolute;
+	/*
+	.filter(saturate(0) brightness(2) blur(1px));
+	opacity:0.7;
+	*/
+}
