@@ -125,29 +125,39 @@ var CometsRenderer = function(selector, config){
     .outerRadius(function(d){ 
       return d.rotation_radius + d.offset + d.width;
     })
-    .startAngle(function(d){ 
-      var startAngle = self.τ/4 + (self.time*d.speed +d.rotation_start_angle)*self.τ/360;
+    .startAngle(function(d){
+      var t = d.rotation_clockwise ? (self.time*d.speed)%360 : -((self.time*d.speed)%360);
+      var startAngle = self.τ/4 + (t+d.rotation_start_angle)*self.τ/360;
       //console.log(startAngle);
       return startAngle;
     })
     .endAngle(function(d){ 
-      var startAngle = self.τ/4 + (self.time*d.speed +d.rotation_start_angle)*self.τ/360;
+      var t = d.rotation_clockwise ? (self.time*d.speed)%360 : -((self.time*d.speed)%360);
+      var startAngle = self.τ/4 + (t+d.rotation_start_angle)*self.τ/360;
       var r = d.rotation_radius + d.offset + d.width/2;
-      var deltaAngle = d.length / r;
+      var deltaAngle = d.rotation_clockwise ? (d.length / r) : -(d.length / r);
       return startAngle - deltaAngle;
     });
 
+  self.computePointX = function(d, time){
+    var t = d.rotation_clockwise ? (time*d.speed)%360 : -((time*d.speed)%360);
+    return (d.rotation_radius * Math.cos((t+d.rotation_start_angle)*self.τ/360)); 
+  };
+  self.computePointY = function(d, time){
+    var t = d.rotation_clockwise ? (time*d.speed)%360 : -((time*d.speed)%360);
+    return (d.rotation_radius * Math.sin((t+d.rotation_start_angle)*self.τ/360)); 
+  };
   self.bindCenterX = function(d, i){
-    return (d.rotation_radius * Math.cos((self.time+d.rotation_start_angle)*d.speed*self.τ/360)); 
+    return self.computePointX(d, self.time);
   };
   self.bindCenterY = function(d, i){
-    return (d.rotation_radius * Math.sin((self.time+d.rotation_start_angle)*d.speed*self.τ/360)); 
+    return self.computePointY(d, self.time);
   };
   self.bindFutureCenterX = function(d, i){
-    return (d.rotation_radius * Math.cos((self.futureTime+d.rotation_start_angle)*d.speed*self.τ/360)); 
+    return self.computePointX(d, self.futureTime);
   };
   self.bindFutureCenterY = function(d, i){
-    return (d.rotation_radius * Math.sin((self.futureTime+d.rotation_start_angle)*d.speed*self.τ/360)); 
+    return self.computePointY(d, self.futureTime);
   };
   self.bindCenterRadius = function(d){
     return d.center_size; 
@@ -177,6 +187,7 @@ CometsRenderer.prototype = {
       var tail = comet.tails[iTail];
       tail.rotation_radius = comet.rotation_radius;
       tail.rotation_start_angle = comet.rotation_start_angle;
+      tail.rotation_clockwise = comet.rotation_clockwise;
       tail.speed = comet.speed;
     }
   },
@@ -203,7 +214,7 @@ CometsRenderer.prototype = {
   render : function(){
     var self=this;
 
-    self.time = (self.time+1)%360;
+    self.time = self.time+1;
     self.futureTime = self.time + self.appearanceDuration/self.framerate;
 
     var svg = d3.select(self.selector);
