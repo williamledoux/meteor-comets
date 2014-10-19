@@ -4,18 +4,50 @@ var config={
   'framerate'         : 1000/60, // 60 FPS
   'originX'           : 400,
   'originY'           : 400,
-  'minRadius'         : 150,
-  'maxRadius'         : 380,
+  'minRadius'         : 200,
+  'maxRadius'         : 375,
   'appearanceDuration': 1000, 
 };
+//-----------------------------------------------------------------------------
+function randomColor(){
+  var colors = ["#FFFFFF", "#661133", "#DD2288", "#DD5522", "#FFDD55", "#FFFFDD"];
+  return colors[Math.floor(Math.random() * colors.length)];
+}
+function randomComet(){
+  
+
+  var comet = {
+    'speed'                : 0.1 + Math.random()*2,
+    'rotation_radius'      : config.minRadius + Math.random()*(config.maxRadius - config.minRadius),
+    'rotation_start_angle' : Math.random()*360, // in degrees
+    'rotation_clockwise'   : Math.random() > 0.5 ? true : false,
+    'center_size'          : Math.floor((Math.random() * 15) + 1),
+    'center_color'         : randomColor(),
+    'stroke_size'          : Math.floor((Math.random() * 3)),
+    'stroke_color'         : randomColor(),
+    'tails'                : [],
+  };
+
+  var tailCount = Math.floor((Math.random() * 10) + 1);
+  for(var iTail=0; iTail<tailCount; ++iTail){
+    var width = Math.floor((Math.random() * comet.center_size) + 1);
+    comet.tails.push({
+      'offset' : -width/2,
+      'width'  : width,
+      'length' : Math.floor((Math.random() * 128) + 1),
+      'color'  : randomColor(),
+      'opacity': Math.random()
+    });
+  }
+  return comet;
+}
 //-----------------------------------------------------------------------------
 // STARTUP
 Comets = new Mongo.Collection(null); // full client connection for now
 Meteor.startup(function(){ 
-
   Comets.insert({
     'speed'                : 1,
-    'rotation_radius'      : 250,
+    'rotation_radius'      : 160,
     'rotation_start_angle' : 0, // in degrees
     'rotation_clockwise'   : true,
     'center_size'          : 8,
@@ -60,6 +92,9 @@ Meteor.startup(function(){
       },
     ]
   });
+  for(var iComet = 0; iComet<60; ++iComet){
+    Comets.insert(randomComet());
+  }
 });
 //-----------------------------------------------------------------------------
 // D3 COMETS RENDERING
