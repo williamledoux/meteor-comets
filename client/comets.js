@@ -15,91 +15,49 @@ Meteor.startup(function(){
 
   Comets.insert({
     'speed'                : 1,
-    'rotation_radius'      : 200,
+    'rotation_radius'      : 250,
     'rotation_start_angle' : 0, // in degrees
     'rotation_clockwise'   : true,
-    'center_size'          : 11,
+    'center_size'          : 8,
     'center_color'         : "#FFFFFF",
-    'stroke_size'          : 1,
-    'stroke_color'         : "#231F20",
+    'stroke_size'          : 2,
+    'stroke_color'         : "#661133",
     'tails'                : [
       {
-        'offset' : -10,
-        'width'  : 1,
-        'length' : 5,
-        'color'  : "#FFFFFF",
-        'opacity': 0.1
-      },
-      {
         'offset' : -8,
-        'width'  : 1,
-        'length' : 15,
-        'color'  : "#FFFFFF",
-        'opacity': 0.2
+        'width'  : 16,
+        'length' : 11,
+        'color'  : "#DD2288",
+        'opacity': 0.7
       },
       {
         'offset' : -6,
-        'width'  : 1,
-        'length' : 30,
-        'color'  : "#FFFFFF",
-        'opacity': 0.3
+        'width'  : 12,
+        'length' : 17,
+        'color'  : "#DD5522",
+        'opacity': 0.7
       },
       {
-        'offset' : -4,
-        'width'  : 1,
-        'length' : 45,
-        'color'  : "#FFFFFF",
-        'opacity': 0.4
+        'offset' : -3,
+        'width'  : 6,
+        'length' : 23,
+        'color'  : "#FFDD55",
+        'opacity': 0.7
       },
       {
-        'offset' : -2,
-        'width'  : 1,
-        'length' : 60,
-        'color'  : "#FFFFFF",
-        'opacity': 0.5
+        'offset' : -1,
+        'width'  : 2,
+        'length' : 33,
+        'color'  : "#FFFFDD",
+        'opacity': 0.7
       },
       {
         'offset' : 0,
         'width'  : 1,
-        'length' : 75,
-        'color'  : "#FFFFFF",
-        'opacity': 0.6
+        'length' : 2000,
+        'color'  : "#ffffff",
+        'opacity': 0.01
       },
-      {
-        'offset' : 2,
-        'width'  : 1,
-        'length' : 60,
-        'color'  : "#FFFFFF",
-        'opacity': 0.5
-      },
-      {
-        'offset' : 4,
-        'width'  : 1,
-        'length' : 45,
-        'color'  : "#FFFFFF",
-        'opacity': 0.4
-      },
-      {
-        'offset' : 6,
-        'width'  : 1,
-        'length' : 30,
-        'color'  : "#FFFFFF",
-        'opacity': 0.3
-      },
-      {
-        'offset' : 8,
-        'width'  : 1,
-        'length' : 15,
-        'color'  : "#FFFFFF",
-        'opacity': 0.2
-      },
-      {
-        'offset' : 10,
-        'width'  : 1,
-        'length' : 5,
-        'color'  : "#FFFFFF",
-        'opacity': 0.1
-      }
     ]
   });
 });
@@ -131,11 +89,13 @@ var CometsRenderer = function(selector, config){
       //console.log(startAngle);
       return startAngle;
     })
-    .endAngle(function(d){ 
+    .endAngle(function(d, i){ 
       var t = d.rotation_clockwise ? (self.time*d.speed)%360 : -((self.time*d.speed)%360);
       var startAngle = self.τ/4 + (t+d.rotation_start_angle)*self.τ/360;
       var r = d.rotation_radius + d.offset + d.width/2;
       var deltaAngle = d.rotation_clockwise ? (d.length / r) : -(d.length / r);
+      // Additionnal oscillation (experimental)
+      deltaAngle += (1+Math.cos(self.time*(1+i)/12))*d.speed/128;
       return startAngle - deltaAngle;
     });
 
@@ -159,8 +119,8 @@ var CometsRenderer = function(selector, config){
   self.bindFutureCenterY = function(d, i){
     return self.computePointY(d, self.futureTime);
   };
-  self.bindCenterRadius = function(d){
-    return d.center_size; 
+  self.bindCenterRadius = function(d, i){
+    return d.center_size /*+ Math.cos(self.time*(1+i))/2*/; 
   };
   self.bindCenterColor = function(d){
     return d.center_color; 
@@ -171,7 +131,16 @@ var CometsRenderer = function(selector, config){
   self.bindStrokeColor = function(d){
     return d.stroke_color; 
   };
-
+  self.bindTailDatum = function(d){
+    return d;
+  };
+  self.bindTailColor = function(d){
+    return d.color;
+  };
+  self.bindTailOpacity = function(d, i){
+    return Math.min(0.99, Math.max(0.05, d.opacity + (d.opacity/10)*Math.sin(Math.cos(self.time*(1+i)*d.speed)) ));
+  };
+  
   Meteor.setInterval(function(){
     self.render();
   }, self.framerate);
@@ -263,9 +232,9 @@ CometsRenderer.prototype = {
               });
 
     groups.filter(function(d) { return d.lifetime>=0; }).selectAll("path").data(function(d){ return d.tails; })
-        .datum(function(d, i, j){return d;})
-        .style("fill", function(d){return d.color;})
-        .style("opacity", function(d){return d.opacity;})
+        .datum(self.bindTailDatum)
+        .style("fill", self.bindTailColor)
+        .style("opacity", self.bindTailOpacity)
         .attr("d", self.arc);        
 
     groups.exit()
